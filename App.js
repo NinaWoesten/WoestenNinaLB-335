@@ -7,36 +7,17 @@ import Home from './app/screens/Home';
 import { FIREBASE_APP, getAuth } from './FirebaseConfig';
 import { User } from 'firebase/auth';
 
-
 const Stack = createNativeStackNavigator();
 const InsideStack = createNativeStackNavigator();
 
-function InsideLayout() {
-  return (
-    <InsideStack.Navigator>
-      <InsideStack.Screen name="My ToDos" component={Home} />
-    </InsideStack.Navigator>
-  );
-}
 
-export default function App() {
-  const [user, setUser] = useState<User | null >(null);
 
-  useEffect(() => {
-    onAuthStateChanged(FIREBASE_AUTH, (user) => {
-      console.log(user);
-      setUser(user);
-    });
-  }, []);
-
+export default function App(){
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName='Login'>
-        {user ? (
-          <Stack.Screen name="My ToDos" component={InsideLayout} options={{ headerShown: false }} />
-        ) : (
-          <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
-        )}
+      <Stack.Navigator>
+          <Stack.Screen options={{ headerShown: false}} name='Login' component={Login} />
+          <Stack.Screen name="My ToDos" component={Home} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

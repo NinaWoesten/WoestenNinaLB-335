@@ -11,12 +11,13 @@ const Login = () => {
   const auth = FIREBASE_AUTH;
   const navigation = useNavigation();
 
+
   const signIn = async () => {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
       alert('Signed in successfully');
-      navigation.navigate('Home'); // Änderung hier
+      navigation.navigate('My ToDos'); 
     } catch (error) {
       alert('Sign in failed ' + error.message);
     } finally {
