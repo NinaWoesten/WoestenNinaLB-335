@@ -3,6 +3,7 @@ import { ActivityIndicator, KeyboardAvoidingView, View, Text, StyleSheet, TextIn
 import { useNavigation } from '@react-navigation/native';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { FIREBASE_AUTH } from '../../FirebaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -11,11 +12,11 @@ const Login = () => {
   const auth = FIREBASE_AUTH;
   const navigation = useNavigation();
 
-
   const signIn = async () => {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      await AsyncStorage.setItem('userToken', 'your-token');
       alert('Signed in successfully');
       navigation.navigate('My ToDos'); 
     } catch (error) {
@@ -36,6 +37,7 @@ const Login = () => {
     }
   };
 
+  
   return (
     <KeyboardAvoidingView style={styles.container} behavior='padding'>
       <TextInput

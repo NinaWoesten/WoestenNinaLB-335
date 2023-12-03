@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { signOut } from 'firebase/auth';
-import { collection, getDocs, addDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
 import { FIREBASE_AUTH, FIREBASE_DB } from '../../FirebaseConfig';
 import { FlatList } from 'react-native-gesture-handler';
+import {AntDesign} from '@expo/vector-icons';
+import Todo from '../../components/Todo';
 
 const Home = () => {
   const auth = FIREBASE_AUTH;
@@ -74,17 +76,25 @@ const deleteTodoItem = async (todoId) => {
 
 return (
   <View style={styles.container}>
-    <Text>Email: {auth.currentUser?.email}</Text>
+    <Text>User: {auth.currentUser?.email}</Text>
+    <Text style={styles.title}>
+      --- ToDo List ---
+    </Text>
     <TextInput
       style={styles.input}
       placeholder="Add a new todo"
       value={addTodo}
       onChangeText={(text) => setAddTodo(text)}
     />
+    <View style={{marginVertical: 48}}>
     <TouchableOpacity onPress={addTodoItem} style={styles.button}>
-      <Text style={styles.btnText}>Add Todo</Text>
+      <AntDesign name='plus' size={20} color='black' />
+      {/*<Text style={styles.btnText}>Add Todo</Text>*/}
     </TouchableOpacity>
+    </View>
     {/* Render your todos here if needed */}
+    <View style={styles.todosContainer}>
+    
     {todos.map((todo) => (
       <View key={todo.id}>
         <Text>{todo.heading}</Text>
@@ -94,24 +104,29 @@ return (
         </TouchableOpacity>
       </View>
     ))}
+    </View>
     <TouchableOpacity onPress={handleSignOut} style={styles.button}>
       <Text style={styles.btnText}>Sign out</Text>
     </TouchableOpacity>
+    <View style={styles.todosContainer}>
     <FlatList 
-    data={todos}
-    renderItem={({ item }) => (
-      <TouchableOpacity onPress={() => navigation.navigate('Todo', { todo: item })} style={styles.button}>
-        <Text style={styles.btnText}>{item.heading}</Text>
-      </TouchableOpacity>
-    )}
+      data={todos}
+      renderItem={({ item }) => (
+        
+        <Todo list={item} />
+      )}
+      keyExtractor={(item) => item.id.toString()}
     />
   </View>
+</View>
 );
 };
+
 
 const styles = StyleSheet.create({
 container: {
   flex: 1,
+  flexDirection: 'column',
   justifyContent: 'center',
   alignItems: 'center',
 },
@@ -123,14 +138,27 @@ input: {
   paddingHorizontal: 8,
 },
 button: {
-  marginTop: 10,
+  borderWidth: 2,
+  borderColor: 'gray',
+  borderRadius: 4,
   padding: 10,
-  backgroundColor: 'blue',
-  borderRadius: 5,
+  alignItems: 'center',
+  justifyContent: 'center',
 },
 btnText: {
-  color: 'white',
+  color: 'black',
 },
+title: {
+  fontSize: 38,
+  fontWeight: 'bold',
+  color: 'black',
+  paddingHorizontal: 20,
+},
+todosContainer: {
+  height: 275,
+  paddingLeft: 30,
+}
+
 });
 
 export default Home;
