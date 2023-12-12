@@ -8,6 +8,8 @@ import { FlatList } from 'react-native-gesture-handler';
 import { AntDesign } from '@expo/vector-icons';
 import Todo from '../../components/Todo';
 import TodoScreen from './TodoScreen';
+import{Camera} from 'expo-camera';
+import * as MediaLibrary from 'expo-media-library';
 import { fetchTodos, addTodo, deleteTodo } from '../../components/TodoFunctions';
 
 
@@ -20,7 +22,7 @@ const Home = () => {
   const [addCategory, setAddCategory] = useState('');
   const [addTodo, setAddTodo] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
-  const backgroundColors = ['#F44336', '#2196F3', '#4CAF50', '#FF9800', '#FF5800'];
+  const backgroundColors = ['#E881A6', '#FFBE98', '#FFA74F', '#60C8B3', '#279D9F', '#1B5091'];
   const [color, setColor] = useState(backgroundColors[0]);
   const categoriesRef = collection(firestore, 'categories');
   const todoRef = collection(firestore, 'todos');
@@ -123,7 +125,7 @@ const Home = () => {
         />
       </Modal>
 
-      <Text>User: {auth.currentUser?.email}</Text>
+      <Text style={styles.user}>User: {auth.currentUser?.email}</Text>
       <Text style={styles.title}>--- Categories ---</Text>
       <TextInput
         style={styles.input}
@@ -136,7 +138,7 @@ const Home = () => {
         style={[styles.createCategory, { backgroundColor: color }]}
         onPress={addCategoryItem}
       >
-        <AntDesign name="plus" size={20} color="black" />
+        <AntDesign name="plus" size={30} color="black" />
       </TouchableOpacity>
       <View style={styles.categoriesContainer}>
         {categories.map((category) => (
@@ -172,13 +174,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
+    backgroundColor:'#ECEBEB',
+  },
+  user: {
+    color: 'gray',
+   
   },
   input: {
     height: 40,
     borderColor: 'gray',
     borderWidth: 1,
+    marginTop: 10,
     marginBottom: 10,
     paddingHorizontal: 8,
+    borderRadius:4,
     width: '70%',
   },
   button: {
@@ -202,14 +211,16 @@ const styles = StyleSheet.create({
   categoriesContainer: {
     marginTop: 10,
     width: '100%',
+    borderRadius:4, 
   },
   categoryItem: {
+    borderRadius:4, 
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: 'lightgray',
+    paddingVertical: 11,
+    borderBottomWidth: 3,
+    borderBottomColor: '#ECEBEB',
   },
   deleteButton: {
     paddingHorizontal: 8,
@@ -219,6 +230,7 @@ const styles = StyleSheet.create({
   colorSelector: {
     width: 40,
     height: 40,
+    marginHorizontal: 2.7,
     borderRadius: 7,
     justifyContent: 'center',
     alignItems: 'center',
@@ -228,7 +240,15 @@ colorCube:{
    flexWrap: 'wrap',
    justifyContent:'space-between', 
    marginVertical: 20,
-   marginHorizontal: 20,
+   marginHorizontal: 1,
+},
+createCategory:{
+  height: 40,
+  width:40,
+  margin:7,
+  justifyContent: 'center',
+  alignItems: 'center',
+  borderRadius: 4,
 }
  
 });

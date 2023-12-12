@@ -1,95 +1,156 @@
-import React, { useState } from 'react';
-import { Modal, Text, TouchableOpacity, View, StyleSheet, Image } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
-import { updateDoc, doc } from 'firebase/firestore';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Modal, Button, Text, SafeAreaView, TouchableOpacity, View, StyleSheet, Image, TextInput } from 'react-native';
+import { Camera } from 'expo-camera';
+import * as MediaLibrary from 'expo-media-library';
+import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc, where, query} from 'firebase/firestore';
 import { FIREBASE_DB } from '../../FirebaseConfig';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
+
 
 const firestore = FIREBASE_DB;
+
 const TodoDetails = ({ closeModal, selectedTodo }) => {
-  const [selectedImage, setSelectedImage] = useState(null); // State für das ausgewählte Bild
+  const [todos, setTodos] = useState([]);
+  const [hasCameraPermission, setHasCameraPermission] = useState();
+  const [hasMediaLibraryPermission, setHasMediaLibraryPermission] = useState();
+  const [photo, setPhoto] = useState(selectedTodo?.photo || null);
+  const cameraRef = useRef();
+  const [description, setDescription] = useState(selectedTodo?.description || '');
 
-  const takePhoto = async () => {
-    let result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.cancelled) {
-      setSelectedImage(result.uri);
-      // Hier kannst du die Logik hinzufügen, um das Bild in der Firestore-Datenbank für das ausgewählte Todo zu speichern
-      saveImageToFirestore(result.uri);
+  const takePhoto = useCallback(async () => {
+    if (cameraRef.current) {
+      let options = {
+        quality: 1,
+        base64: true,
+        exif: false,
+      };
+      let newPhoto = await cameraRef.current.takePictureAsync(options);
+      setPhoto(newPhoto);
+    } else {
+      console.error('Camera reference not initialized');
     }
-  };
+  }, []);
 
-  const saveImageToFirestore = async (uri) => {
+  useEffect(() => {
+    (async () => {
+      const { status: cameraStatus } = await Camera.requestCameraPermissionsAsync();
+      const { status: mediaLibraryStatus } = await MediaLibrary.requestPermissionsAsync();
+
+      setHasCameraPermission(cameraStatus === 'granted');
+      setHasMediaLibraryPermission(mediaLibraryStatus === 'granted');
+    })();
+  }, []);
+
+  if (hasCameraPermission === undefined) {
+    return <Text>Requesting permissions...</Text>;
+  } else if (!hasCameraPermission) {
+    return <Text>Permission for the camera not granted. Please change this in settings.</Text>;
+  }
+
+  if (photo) {
+    let savePhoto = () => {
+      MediaLibrary.saveToLibraryAsync(photo.uri).then(() => {
+        setPhoto(undefined);
+      });
+    };
+    return (
+      <SafeAreaView style={styles.container}>
+        <Image style={styles.preview} source={{ uri: photo.uri }} />
+        {hasMediaLibraryPermission ? <Button title="Save" onPress={savePhoto} /> : undefined}
+        <Button title="Delete" onPress={() => setPhoto(undefined)} />
+      </SafeAreaView>
+    );
+  }
+
+
+  const saveDescription = async() => {
     try {
-      const todoDocRef = doc(firestore, 'todos', selectedTodo.id);
-      await updateDoc(todoDocRef, { image: uri }); // Angenommen, 'image' ist das Feld für das Bild in deinem Firestore-Dokument
+      if (selectedTodo) {
+        const todosRef = doc(firestore, 'todos', selectedTodo.id);
+        await updateDoc(todosRef, {
+          description: description,
+        });
+        setTodos((prevTodos) =>
+          prevTodos.map((todo) =>
+            todo.id === selectedTodo.id ? { ...todo, description: description } : todo
+          )
+        );
+      }
     } catch (error) {
-      console.error('Error saving image to Firestore:', error);
+      console.error('Error updating todo description:', error);
     }
   };
 
   return (
-    <Modal animationType='slide' visible={!!selectedTodo} onRequestClose={closeModal}>
-      <View style={styles.container}>
-        <TouchableOpacity onPress={takePhoto} style={styles.button}>
-          <AntDesign name="camerao" size={24} color="black" />
-          <Text style={styles.buttonText}>Take Photo</Text>
-        </TouchableOpacity>
-        {/* Anzeige des ausgewählten Bildes */}
-        {selectedImage ? (
-          <Image source={{ uri: selectedImage }} style={styles.selectedImage} />
-        ) : (
-          <Text>No image selected</Text>
-        )}
-        {/* Weitere Inhalte des Modals */}
-        <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
-          <Text style={styles.btnText}>Close</Text>
-        </TouchableOpacity>
+    <SafeAreaView style={styles.container}>
+      <TouchableOpacity style={styles.categoryButton} onPress={closeModal}>
+        <AntDesign style={styles.closeIcon} name='close' size={20} color='black' />
+      </TouchableOpacity>
+      <View style={styles.buttonContainer}>
+        <Button title="Take Photo" onPress={takePhoto} />
       </View>
-    </Modal>
+
+      {photo ? (
+        <View>
+          <Image style={styles.preview} source={{ uri: photo.uri }} />
+          {hasMediaLibraryPermission ? <Button title="Save Photo" onPress={savePhoto} /> : undefined}
+          <Button title="Delete Photo" onPress={() => setPhoto(null)} />
+        </View>
+      ) : (
+        <View>
+          <TextInput
+            style={styles.descriptionInput}
+            placeholder="Enter ToDo description..."
+            multiline
+            value={description}
+            onChangeText={(text) => setDescription(text)}
+          />
+          <TouchableOpacity style={styles.button} onPress={saveDescription}>
+            <Text>Save Description</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+        <TouchableOpacity onPress={closeModal} style={[styles.button, styles.closeButton]}>
+        <Text style={styles.btnText}>Close</Text>
+      </TouchableOpacity>
+    </SafeAreaView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    // ... andere Styles
   },
-  selectedImage: {
-    width: 200,
-    height: 200,
-    marginVertical: 20,
-    // ... andere Styles
-  },
-  button: {
+  categoryButton: {
+    position: 'absolute',
+    top: 60,
+    right: 30,
+},
+  buttonContainer: {
+    alignSelf: 'flex-end',
     flexDirection: 'row',
     alignItems: 'center',
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 20,
+  },
+  preview: {
+    alignSelf: 'stretch',
+    flex: 1,
+  },
+  descriptionInput: {
+    height: 100,
+    borderColor: 'gray',
+    borderWidth: 1,
+    padding: 10,
+    marginBottom: 20,
+  },
+  button: {
     backgroundColor: 'lightblue',
     padding: 10,
     borderRadius: 5,
     marginBottom: 20,
-    // ... andere Styles
-  },
-  buttonText: {
-    marginLeft: 10,
-    // ... andere Styles
-  },
-  closeButton: {
-    backgroundColor: 'gray',
-    padding: 10,
-    borderRadius: 5,
-    // ... andere Styles
-  },
-  btnText: {
-    color: 'white',
-    // ... andere Styles
   },
 });
 

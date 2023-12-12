@@ -14,6 +14,9 @@ const TodoScreen = ({ closeModal, selectedCategory }) => {
   const [selectedTodo, setSelectedTodo] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [editTodo, setEditTodo] = useState('');
+  const [description, setDescription] = useState(''); 
+  const [photo, setPhoto] = useState(null);
+  const [completedTodos, setCompletedTodos] = useState([]);
  
     const fetchTodos = async () => {
       if (selectedCategory) {
@@ -45,8 +48,12 @@ const TodoScreen = ({ closeModal, selectedCategory }) => {
           todo: todoName,
           completed: false,
           createdAt: timestamp,
+          description: description,
+          photo: photo,
         });
         setTodoName('');
+        setDescription('');
+        setPhoto(null);
         closeModal(); 
       } catch (error) {
         console.error('Error adding todo:', error);
@@ -72,6 +79,22 @@ const TodoScreen = ({ closeModal, selectedCategory }) => {
     setSelectedTodo(todo);
     setModalVisible(true);
   };
+
+  const handleTodoCompleted = (todoId) => {
+    const updatedTodos = todos.map((todo) =>
+      todo.id === todoId ? { ...todo, completed: !todo.completed } : todo
+    );
+
+    setTodos(updatedTodos);
+
+    const completedTodo = todos.find((todo) => todo.id === todoId);
+    if (completedTodo) {
+      setCompletedTodos((prevCompletedTodos) => [
+        ...prevCompletedTodos,
+        completedTodo,
+      ]);
+    }
+  }
   const handleEditTodo = async () => {
     const success = await editTodo(selectedCategory);
     if (success) {
@@ -84,20 +107,29 @@ const TodoScreen = ({ closeModal, selectedCategory }) => {
 
   return (
       
-    <View style={styles.modalContainer}>
-    <Modal animationType='slide' visible={modalVisible} onRequestClose={handleTodoPress} selectedTodo={selectedTodo}>
+    <View style={styles.modalContainer}behavior="padding">
+      <TouchableOpacity style={styles.categoryButton} onPress={closeModal}>
+        <AntDesign style={styles.closeIcon} name='close' size={20} color='black' />
+      </TouchableOpacity>
+    <Modal animationType='slide' visible={modalVisible} onRequestClose={handleTodoPress}>
         <TodoDetails
           closeModal={() => setModalVisible(false)}
           handleEditTodo={handleEditTodo}
           selectedTodo={selectedTodo}
         />
       </Modal>
-      <Text style={styles.modalTitle}>Add Todo for {selectedCategory?.name}</Text>
+      <Text style={styles.modalTitle}>Add a new task for {selectedCategory?.name}</Text>
       <TextInput
         style={styles.input}
-        placeholder="Add a new todo"
+        placeholder="Add a new task"
         value={todoName}
         onChangeText={(text) => setTodoName(text)}
+      />
+       <TextInput
+        style={styles.input}
+        placeholder="Add a description"
+        value={description}
+        onChangeText={(text) => setDescription(text)}
       />
          <TouchableOpacity onPress={() => addTodo(selectedCategory)} style={styles.button}>
         <AntDesign name="plus" size={20} color="black" />
@@ -106,8 +138,12 @@ const TodoScreen = ({ closeModal, selectedCategory }) => {
       <View style={styles.todosContainer}>
         {todos.map((todo) => (
           <View key={todo.id} style={styles.todoItem}>
-            <TouchableOpacity onPress={() => handleTodoCompleted(todo.id)}>
-              <Ionicons name="ios-square" size={20} color="grey" />
+             <TouchableOpacity onPress={() => handleTodoCompleted(todo.id)}>
+              <Ionicons
+                name={todo.completed ? 'ios-checkbox' : 'ios-square-outline'}
+                size={20}
+                color={todo.completed ? 'green' : 'grey'}
+              />
             </TouchableOpacity>
             <Text style={styles.todoText}>{todo.todo}</Text>
             <TouchableOpacity onPress={() => deleteTodo(todo.id)}>
@@ -119,54 +155,73 @@ const TodoScreen = ({ closeModal, selectedCategory }) => {
           </View>
         ))}
       </View>
-
-      <TouchableOpacity onPress={closeModal} style={[styles.button, styles.closeButton]}>
-        <Text style={styles.btnText}>Close</Text>
-      </TouchableOpacity>
     </View>
   );
 };
 
-
 const styles = StyleSheet.create({
-    modalContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor:'#ECEBEB',
+  },
+  categoryButton: {
+    position: 'absolute',
+    top: 60,
+    right: 30,
+},
+  input: {
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    marginTop: 10,
+    marginBottom: 10,
+    paddingHorizontal: 8,
+    borderRadius:4,
+    width: '70%',
+  },
+   
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
       },
-      modalTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: 'white',
-        marginBottom: 20,
-      },
-      todosContainer: {
-        marginTop: 20,
-        width: '100%',
-        paddingHorizontal: 20,
-      },
-      todoItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: 10,
-        backgroundColor: '#f9f9f9',
-        padding: 10,
-        borderRadius: 8,
-      },
-      todoText: {
-        flex: 1,
-        marginHorizontal: 10,
-      },
-      closeButton: {
-        borderWidth: 2,
-        borderColor: 'darkgray',
-        borderRadius: 4,
-        padding: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginTop: 10,
-      },
-    });
+  button: {
+    borderWidth: 2,
+    borderColor: 'gray',
+    borderRadius: 4,
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+  },
+  todosContainer: {
+    marginTop: 20,
+    width: '100%',
+    paddingHorizontal: 20,
+  },
+  todoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+    backgroundColor: '#f9f9f9',
+    padding: 10,
+    borderRadius: 4,
+  },
+  todoText: {
+    flex: 1,
+    marginHorizontal: 10,
+  },
+  closeButton: {
+    borderWidth: 2,
+    borderColor: 'darkgray',
+    borderRadius: 4,
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+  },
+});
 export default TodoScreen;
