@@ -2,15 +2,13 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Modal, Button, Text, SafeAreaView, TouchableOpacity, View, StyleSheet, Image, TextInput } from 'react-native';
 import { Camera } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
-import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc, where, query} from 'firebase/firestore';
+import { collection, doc, updateDoc } from 'firebase/firestore';
 import { FIREBASE_DB } from '../../FirebaseConfig';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
-
+import { AntDesign } from '@expo/vector-icons';
 
 const firestore = FIREBASE_DB;
 
 const TodoDetails = ({ closeModal, selectedTodo }) => {
-  const [todos, setTodos] = useState([]);
   const [hasCameraPermission, setHasCameraPermission] = useState();
   const [hasMediaLibraryPermission, setHasMediaLibraryPermission] = useState();
   const [photo, setPhoto] = useState(selectedTodo?.photo || null);
@@ -47,34 +45,24 @@ const TodoDetails = ({ closeModal, selectedTodo }) => {
     return <Text>Permission for the camera not granted. Please change this in settings.</Text>;
   }
 
-  if (photo) {
-    let savePhoto = () => {
-      MediaLibrary.saveToLibraryAsync(photo.uri).then(() => {
-        setPhoto(undefined);
-      });
-    };
-    return (
-      <SafeAreaView style={styles.container}>
-        <Image style={styles.preview} source={{ uri: photo.uri }} />
-        {hasMediaLibraryPermission ? <Button title="Save" onPress={savePhoto} /> : undefined}
-        <Button title="Delete" onPress={() => setPhoto(undefined)} />
-      </SafeAreaView>
-    );
-  }
+  const savePhoto = async () => {
+    if (photo) {
+      try {
+        await MediaLibrary.saveToLibraryAsync(photo.uri);
+        setPhoto(null);
+      } catch (error) {
+        console.error('Error saving photo to library:', error);
+      }
+    }
+  };
 
-
-  const saveDescription = async() => {
+  const saveDescription = async () => {
     try {
       if (selectedTodo) {
         const todosRef = doc(firestore, 'todos', selectedTodo.id);
         await updateDoc(todosRef, {
           description: description,
         });
-        setTodos((prevTodos) =>
-          prevTodos.map((todo) =>
-            todo.id === selectedTodo.id ? { ...todo, description: description } : todo
-          )
-        );
       }
     } catch (error) {
       console.error('Error updating todo description:', error);
@@ -98,6 +86,11 @@ const TodoDetails = ({ closeModal, selectedTodo }) => {
         </View>
       ) : (
         <View>
+          <Camera
+            style={styles.camera}
+            type={Camera.Constants.Type.back}
+            ref={cameraRef}
+          />
           <TextInput
             style={styles.descriptionInput}
             placeholder="Enter ToDo description..."
@@ -110,12 +103,13 @@ const TodoDetails = ({ closeModal, selectedTodo }) => {
           </TouchableOpacity>
         </View>
       )}
-        <TouchableOpacity onPress={closeModal} style={[styles.button, styles.closeButton]}>
+      <TouchableOpacity onPress={closeModal} style={[styles.button, styles.closeButton]}>
         <Text style={styles.btnText}>Close</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -124,20 +118,26 @@ const styles = StyleSheet.create({
   },
   categoryButton: {
     position: 'absolute',
-    top: 60,
-    right: 30,
-},
+    top: 10,
+    left: 10,
+  },
+  closeIcon: {
+    fontSize: 24,
+  },
   buttonContainer: {
-    alignSelf: 'flex-end',
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 20,
+    marginVertical: 20,
   },
   preview: {
-    alignSelf: 'stretch',
-    flex: 1,
+    width: 300,
+    height: 300,
+    borderRadius: 10,
+    marginVertical: 20,
+  },
+  camera: {
+    width: 300,
+    height: 300,
+    borderRadius: 10,
+    marginVertical: 20,
   },
   descriptionInput: {
     height: 100,
@@ -151,6 +151,12 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     marginBottom: 20,
+  },
+  closeButton: {
+    backgroundColor: 'red',
+  },
+  btnText: {
+    color: 'white',
   },
 });
 
