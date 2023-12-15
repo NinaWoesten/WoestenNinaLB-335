@@ -9,6 +9,8 @@ import { AntDesign } from '@expo/vector-icons';
 const firestore = FIREBASE_DB;
 
 const TodoDetails = ({ closeModal, selectedTodo }) => {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [showCamera, setShowCamera] = useState(true);
   const [hasCameraPermission, setHasCameraPermission] = useState();
   const [hasMediaLibraryPermission, setHasMediaLibraryPermission] = useState();
   const [photo, setPhoto] = useState(selectedTodo?.photo || null);
@@ -24,6 +26,7 @@ const TodoDetails = ({ closeModal, selectedTodo }) => {
       };
       let newPhoto = await cameraRef.current.takePictureAsync(options);
       setPhoto(newPhoto);
+      setShowCamera(false);
     } else {
       console.error('Camera reference not initialized');
     }
@@ -50,15 +53,31 @@ const TodoDetails = ({ closeModal, selectedTodo }) => {
       try {
         await MediaLibrary.saveToLibraryAsync(photo.uri);
         setPhoto(null);
+        setShowCamera(false);
+       
+        alert ('Photo successfully saved in your Gallery');
       } catch (error) {
         console.error('Error saving photo to library:', error);
       }
     }
   };
-
-  const saveDescription = async () => {
+  const editTodo = async () => {
     try {
       if (selectedTodo) {
+        const todosRef = doc(firestore, 'todos', selectedTodo.id);
+        await updateDoc(todosRef, {
+          description: description,
+        });
+        setModalVisible(false); // Schließe das Modal nach der Aktualisierung
+      }
+    } catch (error) {
+      console.error('Error updating todo description:', error);
+    }
+  };
+  const saveDescription = async () => {
+    try {
+      if (selectedTodo && description.trim() !== '') {
+        await editTodo(); 
         const todosRef = doc(firestore, 'todos', selectedTodo.id);
         await updateDoc(todosRef, {
           description: description,
@@ -68,6 +87,7 @@ const TodoDetails = ({ closeModal, selectedTodo }) => {
       console.error('Error updating todo description:', error);
     }
   };
+  
 
   return (
     <SafeAreaView style={styles.container}>
