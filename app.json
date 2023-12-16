@@ -3,7 +3,7 @@
     "name": "WoestenNinaLB-335",
     "slug": "WoestenNinaLB-335",
     "version": "1.0.0",
-    "orientation": "all",
+    "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {

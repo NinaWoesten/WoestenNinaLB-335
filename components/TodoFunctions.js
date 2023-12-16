@@ -1,4 +1,3 @@
-// TodoFunctions.js
 import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
 import { FIREBASE_DB } from '../FirebaseConfig';
 

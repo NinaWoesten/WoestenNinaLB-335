@@ -3,14 +3,9 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal } from 'reac
 import { useNavigation } from '@react-navigation/native';
 import { signOut } from 'firebase/auth';
 import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
-import { FIREBASE_AUTH, FIREBASE_DB } from '../../FirebaseConfig';
-import { FlatList } from 'react-native-gesture-handler';
+import { FIREBASE_AUTH, FIREBASE_DB,  } from '../../FirebaseConfig';
 import { AntDesign } from '@expo/vector-icons';
-import Todo from '../../components/Todo';
 import TodoScreen from './TodoScreen';
-import{Camera} from 'expo-camera';
-import * as MediaLibrary from 'expo-media-library';
-import { fetchTodos, addTodo, deleteTodo } from '../../components/TodoFunctions';
 
 
 const Home = () => {
@@ -102,16 +97,6 @@ const Home = () => {
       setAddTodo('');
       setModalVisible(false);
     } else {
-      // Handle error case
-    }
-  };
-
-  const handleDeleteTodo = async (todoId) => {
-    const success = await deleteTodo(todoId);
-    if (success) {
-      // Handle success case or refetch todos if necessary
-    } else {
-      // Handle error case
     }
   };
 

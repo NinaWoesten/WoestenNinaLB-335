@@ -3,7 +3,6 @@ import { Modal, Text, TextInput, TouchableOpacity, View, StyleSheet } from 'reac
 import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { collection, getDocs, addDoc, deleteDoc, doc, where, query} from 'firebase/firestore';
 import TodoDetails from './TodoDetails';
-
 import { FIREBASE_DB } from '../../FirebaseConfig';
 
 const firestore = FIREBASE_DB;
@@ -100,18 +99,15 @@ const TodoScreen = ({ closeModal, selectedCategory }) => {
     if (success) {
       setEditTodo('');
       setModalVisible(true);
-    } else {
-      // Handle error case
-    }
+    } 
   };
 
   return (
-      
     <View style={styles.modalContainer}behavior="padding">
       <TouchableOpacity style={styles.categoryButton} onPress={closeModal}>
         <AntDesign style={styles.closeIcon} name='close' size={20} color='black' />
       </TouchableOpacity>
-    <Modal animationType='slide' visible={modalVisible} onRequestClose={handleTodoPress}>
+      <Modal animationType='slide' visible={modalVisible} onRequestClose={handleTodoPress}>
         <TodoDetails
           closeModal={() => setModalVisible(false)}
           handleEditTodo={handleEditTodo}
@@ -145,8 +141,13 @@ const TodoScreen = ({ closeModal, selectedCategory }) => {
                 color={todo.completed ? 'green' : 'grey'}
               />
             </TouchableOpacity>
-            <Text style={styles.todoText}>{todo.todo}</Text>
-            <TouchableOpacity onPress={() => deleteTodo(todo.id)}>
+            
+            <TouchableOpacity onPress={() => handleTodoPress(todo)}>
+            <Text style={{ textDecorationLine: todo.completed ? 'line-through' : 'none', flex: 1, marginHorizontal: 10 }}>
+            {todo.todo}
+            </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => deleteTodo(todo.id)}style={{ marginRight: -38 }}>
               <AntDesign name="delete" size={20} color="red" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => handleTodoPress(todo)}>
@@ -211,8 +212,9 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   todoText: {
+    marginRight: 88,
     flex: 1,
-    marginHorizontal: 10,
+    marginHorizontal: 1,
   },
   closeButton: {
     borderWidth: 2,

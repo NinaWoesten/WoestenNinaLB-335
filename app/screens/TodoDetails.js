@@ -61,32 +61,22 @@ const TodoDetails = ({ closeModal, selectedTodo }) => {
       }
     }
   };
-  const editTodo = async () => {
-    try {
-      if (selectedTodo) {
-        const todosRef = doc(firestore, 'todos', selectedTodo.id);
-        await updateDoc(todosRef, {
-          description: description,
-        });
-        setModalVisible(false); // Schließe das Modal nach der Aktualisierung
-      }
-    } catch (error) {
-      console.error('Error updating todo description:', error);
-    }
-  };
+
   const saveDescription = async () => {
     try {
+      console.log('Before updateDoc');
       if (selectedTodo && description.trim() !== '') {
-        await editTodo(); 
         const todosRef = doc(firestore, 'todos', selectedTodo.id);
         await updateDoc(todosRef, {
           description: description,
         });
+        closeModal(); 
       }
     } catch (error) {
       console.error('Error updating todo description:', error);
     }
   };
+  
   
 
   return (
@@ -94,9 +84,7 @@ const TodoDetails = ({ closeModal, selectedTodo }) => {
       <TouchableOpacity style={styles.categoryButton} onPress={closeModal}>
         <AntDesign style={styles.closeIcon} name='close' size={20} color='black' />
       </TouchableOpacity>
-      <View style={styles.buttonContainer}>
-        <Button title="Take Photo" onPress={takePhoto} />
-      </View>
+    
 
       {photo ? (
         <View>
@@ -117,15 +105,17 @@ const TodoDetails = ({ closeModal, selectedTodo }) => {
             multiline
             value={description}
             onChangeText={(text) => setDescription(text)}
-          />
+          /> 
+          <TouchableOpacity style={styles.button} onPress={takePhoto} >
+        <Text>Take Photo</Text> 
+        </TouchableOpacity>  
           <TouchableOpacity style={styles.button} onPress={saveDescription}>
             <Text>Save Description</Text>
-          </TouchableOpacity>
-        </View>
+          </TouchableOpacity>  
+         
+        </View>  
+      
       )}
-      <TouchableOpacity onPress={closeModal} style={[styles.button, styles.closeButton]}>
-        <Text style={styles.btnText}>Close</Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -145,7 +135,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   buttonContainer: {
-    marginVertical: 20,
+    marginVertical: 2,
   },
   preview: {
     width: 300,

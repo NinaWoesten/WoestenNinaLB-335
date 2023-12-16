@@ -14,9 +14,12 @@
     "@react-navigation/native": "^6.1.9",
     "@react-navigation/native-stack": "^6.9.17",
     "expo": "~49.0.15",
+    "expo-camera": "~13.4.4",
     "expo-constants": "~14.4.2",
     "expo-firebase": "^0.0.0-alpha.0",
+    "expo-image-picker": "~14.3.2",
     "expo-linking": "~5.0.2",
+    "expo-media-library": "~15.4.1",
     "expo-router": "^2.0.14",
     "expo-status-bar": "~1.6.0",
     "firebase": "^10.6.0",
@@ -30,10 +33,7 @@
     "react-native-vector-icons": "^10.0.2",
     "react-native-web": "~0.19.6",
     "react-navigation": "^4.4.4",
-    "react-navigation-stack": "^2.10.4",
-    "expo-image-picker": "~14.3.2",
-    "expo-camera": "~13.4.4",
-    "expo-media-library": "~15.4.1"
+    "react-navigation-stack": "^2.10.4"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
